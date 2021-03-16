@@ -122,7 +122,7 @@ class DataTrainingArguments:
         },
     )
     max_target_length: Optional[int] = field(
-        default=128,
+        default=512,
         metadata={
             "help": "The maximum total sequence length for target text after tokenization. Sequences longer "
                     "than this will be truncated, sequences shorter will be padded."
@@ -237,7 +237,7 @@ def main():
 
     if training_args.do_train:
         train_dataset = datasets["train"]
-        train_dataset = train_dataset.select(range(300))
+        #train_dataset = train_dataset.select(range(300))
         if "train" not in datasets:
             raise ValueError("--do_train requires a train dataset")
         train_dataset = train_dataset.map(
@@ -251,7 +251,7 @@ def main():
         if "validation" not in datasets:
             raise ValueError("--do_eval requires a validation dataset")
         eval_dataset = datasets["validation"]
-        eval_dataset = eval_dataset.select(range(300))
+        #eval_dataset = eval_dataset.select(range(300))
         eval_dataset = eval_dataset.map(
             preprocess_function,
             batched=True,
