@@ -26,6 +26,7 @@ from transformers import (
 )
 from model import load_model_and_tokenizer
 nltk.download("punkt", quiet=True)
+from transformers.optimization import Adafactor
 @dataclass
 class ModelArguments:
     """
@@ -295,7 +296,21 @@ def main():
         result["gen_len"] = np.mean(prediction_lens)
         result = {k: round(v, 4) for k, v in result.items()}
         return result
-
+    # this is the recommended t5 finetuning setup from
+    # https://huggingface.co/transformers/main_classes/optimizer_schedules.html#adafactor-pytorch
+    optimizer = Adafactor(
+        model.parameters(),
+        lr=1e-3,
+        eps=(1e-30, 1e-3),
+        clip_threshold=1.0,
+        decay_rate=-0.8,
+        beta1=None,
+        weight_decay=0.0,
+        relative_step=False,
+        scale_parameter=False,
+        warmup_init=False
+    )
+    lr_scheduler = transformers.get_constant_schedule(optimizer)
     trainer = Seq2SeqTrainer(
         model=model,
         args=training_args,
@@ -304,6 +319,7 @@ def main():
         tokenizer=tokenizer,
         data_collator=data_collator,
         compute_metrics=compute_metrics if training_args.predict_with_generate else None,
+        optimizers=(optimizer, lr_scheduler)
     )
     if training_args.do_train:
         train_result = trainer.train()
