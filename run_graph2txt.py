@@ -1,6 +1,4 @@
-import logging
 import os
-import re
 import sys
 from dataclasses import dataclass, field
 from typing import Optional
@@ -10,19 +8,12 @@ import numpy as np
 from datasets import load_dataset, load_metric
 
 import transformers
-from filelock import FileLock
 from transformers import (
-    AutoConfig,
-    AutoModelForSeq2SeqLM,
-    AutoTokenizer,
     DataCollatorForSeq2Seq,
     HfArgumentParser,
-    MBartTokenizer,
-    MBartTokenizerFast,
     Seq2SeqTrainer,
     Seq2SeqTrainingArguments,
     default_data_collator,
-    set_seed,
 )
 from model import load_model_and_tokenizer
 from pathlib import Path
@@ -32,7 +23,8 @@ try:
     nltk.data.find("punkt", paths=[str(Path.cwd() / "nltk_data")])
 except LookupError:
     nltk.download("punkt", download_dir=str(Path.cwd() / "nltk_data"))
-
+import torch
+torch.cuda.empty_cache()
 
 @dataclass
 class ModelArguments:
@@ -245,7 +237,7 @@ def main():
 
     if training_args.do_train:
         train_dataset = datasets["train"]
-        train_dataset = train_dataset.select(range(1))
+        #train_dataset = train_dataset.select(range(1))
         if "train" not in datasets:
             raise ValueError("--do_train requires a train dataset")
         train_dataset = train_dataset.map(
@@ -259,7 +251,7 @@ def main():
         if "validation" not in datasets:
             raise ValueError("--do_eval requires a validation dataset")
         eval_dataset = datasets["validation"]
-        eval_dataset = eval_dataset.select(range(1))
+        #eval_dataset = eval_dataset.select(range(1))
         eval_dataset = eval_dataset.map(
             preprocess_function,
             batched=True,
