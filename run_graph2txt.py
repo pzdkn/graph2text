@@ -25,8 +25,15 @@ from transformers import (
     set_seed,
 )
 from model import load_model_and_tokenizer
-nltk.download("punkt", quiet=True)
+from pathlib import Path
 from transformers.optimization import Adafactor
+
+try:
+    nltk.data.find("punkt", paths=[str(Path.cwd() / "nltk_data")])
+except LookupError:
+    nltk.download("punkt", download_dir=str(Path.cwd() / "nltk_data"))
+
+
 @dataclass
 class ModelArguments:
     """
@@ -202,6 +209,7 @@ class DataTrainingArguments:
         if self.val_max_target_length is None:
             self.val_max_target_length = self.max_target_length
 
+
 def main():
     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, Seq2SeqTrainingArguments))
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
@@ -296,6 +304,7 @@ def main():
         result["gen_len"] = np.mean(prediction_lens)
         result = {k: round(v, 4) for k, v in result.items()}
         return result
+
     # this is the recommended t5 finetuning setup from
     # https://huggingface.co/transformers/main_classes/optimizer_schedules.html#adafactor-pytorch
     optimizer = Adafactor(
