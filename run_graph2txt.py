@@ -26,7 +26,7 @@ from transformers import (
 )
 from model import load_model_and_tokenizer
 from pathlib import Path
-from transformers.optimization import Adafactor
+from transformers.optimization import Adafactor, AdamW
 
 try:
     nltk.data.find("punkt", paths=[str(Path.cwd() / "nltk_data")])
@@ -309,7 +309,7 @@ def main():
     # https://huggingface.co/transformers/main_classes/optimizer_schedules.html#adafactor-pytorch
     optimizer = Adafactor(
         model.parameters(),
-        lr=1e-3,
+        lr=3e-4,
         eps=(1e-30, 1e-3),
         clip_threshold=1.0,
         decay_rate=-0.8,
@@ -317,8 +317,10 @@ def main():
         weight_decay=0.0,
         relative_step=False,
         scale_parameter=False,
-        warmup_init=False
-    )
+        warmup_init=False)
+    """
+    optimizer = AdamW(lr=3e-5)
+    """
     lr_scheduler = transformers.get_constant_schedule(optimizer)
     trainer = Seq2SeqTrainer(
         model=model,
